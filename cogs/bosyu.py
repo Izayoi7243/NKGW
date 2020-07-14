@@ -61,9 +61,10 @@ class bosyu(commands.Cog):
             if len(args) <= 1:
                 print(f"count = {args[0]}")
                 self.count = int(args[0]) 
-            recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください")
+            recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください\nキャンセルする場合は❌を推してください")
             nrecruitid = recruit.id
             self.recruitid = nrecruitid
+            await recruit.add_reaction("❌")
             await recruit.add_reaction("👍")
             def check(reaction, user):
                 return user.guild_permissions.administrator == reaction.message.author.guild_permissions.administrator and str(reaction.emoji) == '🔚'
