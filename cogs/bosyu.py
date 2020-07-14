@@ -39,7 +39,7 @@ class bosyu(commands.Cog):
         conn.close()
     
     @commands.command()
-    async def resetall(self, ctx, usage="このコマンドは、何らかの事情で募集コマンドをやり直したいときに使ってください※管理者のみ使用可能"):
+    async def resetall(self, ctx):
         if ctx.author.guild_permissions.administrator:
             self.already.clear()
             self.players.clear()
@@ -48,7 +48,7 @@ class bosyu(commands.Cog):
             ctx.channel.send("このコマンドは管理者のみ使用可能です")
 
     @commands.command()
-    async def resetplay(self, ctx, help="すでに参加したプレイヤーのプレイ数をリセット※管理者のみ使用可能"):
+    async def resetplay(self, ctx):
         if ctx.author.guild_permissions.administrator:
             self.already.clear()
         else:
@@ -56,7 +56,7 @@ class bosyu(commands.Cog):
 
     
     @commands.command()
-    async def start(self, ctx, srice: int, *args: str,help="使用方法\n```n!start <チームごとの人数> <一度参加したプレイヤーが何回休むか**省略した場合は0になります**>"):
+    async def start(self, ctx, srice: int, *args: str):
         if ctx.author.guild_permissions.administrator:      
             if len(args) <= 1:
                 print(f"count = {args[0]}")
@@ -105,7 +105,7 @@ class bosyu(commands.Cog):
             await ctx.channel.send("管理者のみ使用可能です")
 
     @commands.command()
-    async def playerlist(self, ctx,help="抽選に参加しているプレイヤーのリスト※誰でも使用可能"):
+    async def playerlist(self, ctx):
         embed=discord.Embed(title="Players", color=0xffffff)
         embed.add_field(name="All", value='\n'.join(self.players), inline=False)
         try:
