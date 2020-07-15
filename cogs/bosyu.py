@@ -56,52 +56,60 @@ class bosyu(commands.Cog):
 
     
     @commands.command()
-    async def start(self, ctx, srice: int, *args: str):
+    async def start(self, ctx, srice: int, count=0):
         if ctx.author.guild_permissions.administrator:      
-            if len(args) <= 1:
-                print(f"count = {args[0]}")
-                self.count = int(args[0]) 
-            recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください\nキャンセルする場合は❌を推してください")
+            if count == 0:
+                self.count = 0
+            else:
+                self.count = count
+            print(f"COUNT IS {count} class count is {self.count}")
+            recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください")
             nrecruitid = recruit.id
             self.recruitid = nrecruitid
-            await recruit.add_reaction("❌")
             await recruit.add_reaction("👍")
+            await recruit.add_reaction("❌")
             def check(reaction, user):
-                return user.guild_permissions.administrator == reaction.message.author.guild_permissions.administrator and str(reaction.emoji) == '🔚'
+                return user.guild_permissions.administrator == reaction.message.author.guild_permissions.administrator and str(reaction.emoji) == '✅' or user.guild_permissions.administrator == reaction.message.author.guild_permissions.administrator and str(reaction.emoji) == '🔚'
+                #もしつけられたリアクションが✅か🔚だったというcheck関数
             try:
                 reaction, user = await self.bot.wait_for('reaction_add', check=check)
+                #つけられたリアクションが✅か🔚なら
             except asyncio.TimeoutError:
+                #タイムアウトした場合の処理
                 return
             else:
-                conn = MySQLdb.connect(
-                user='admin',
-                passwd='OZmLQi6yXjvtmLvuKJWB',
-                host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-                db='nakagawa',
-                charset="utf8"
-                )
-                c = conn.cursor()
-                await ctx.channel.send('募集を締め切り、チーム分けを行います')
-                print(f"参加済み:{self.players}")
-                random.shuffle(self.players)
-                print(len(args))
-                print(f"srice = {srice}")
-                self.srice = int(srice)      
-                blue = self.players[:self.srice]#:-5
-                orange = self.players[self.srice:self.srice*2]#5:
-                for ign in self.players[:10]:
-                    sql = f"SELECT id from playerdata WHERE ign='{ign}';"
-                    c.execute(sql)
-                    did = c.fetchone()
-                    self.already[did[0]] = +1
-                print(blue)
-                print(orange)
-                embed=discord.Embed(title="Team", color=0xffffff)
-                embed.add_field(name="Blue", value='\n'.join(blue), inline=False)
-                embed.add_field(name="Orange", value='\n'.join(orange), inline=False)
-                await ctx.channel.send(embed=embed)
-                self.srice = 1
-                self.players.clear()
+                #それ以外の場合(つけられたリアクションが✅か🔚の場合)
+                if str(reaction) == '✅':#つけられたリアクションが✅ならチーム分け
+                    conn = MySQLdb.connect(#sqlサーバーにコネクト
+                    user='admin',
+                    passwd='OZmLQi6yXjvtmLvuKJWB',
+                    host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
+                    db='nakagawa',
+                    charset="utf8"
+                    )
+                    c = conn.cursor()
+                    await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
+                    print(f"参加済み:{self.players}")
+                    random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
+                    print(f"srice = {srice}")
+                    self.srice = int(srice)      
+                    blue = self.players[:self.srice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
+                    orange = self.players[self.srice:self.srice*2]
+                    for ign in self.players[:10]:#当選したプレイヤー10人の名前をスライスでfor
+                        sql = f"SELECT id from playerdata WHERE ign='{ign}';"#当選したプレイヤーの名前からidを入手
+                        c.execute(sql)#sqlを実行
+                        did = c.fetchone()#idを代入
+                        self.already[did[0]] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
+                    print(blue)#ブルーチーム
+                    print(orange)#オレンジチーム
+                    embed=discord.Embed(title="Team", color=0xffffff)
+                    embed.add_field(name="Blue", value='\n'.join(blue), inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
+                    embed.add_field(name="Orange", value='\n'.join(orange), inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
+                    await ctx.channel.send(embed=embed)#チーム分けを送信
+                    self.srice = 0#チーム分けの人数をリセット
+                    self.players.clear()#抽選参加プレイヤーをクリア
+                elif str(reaction) == '🔚':#つけられたリアクションが🔚の場合
+                    ctx.channel.send("募集をキャンセルします")
         else:
             await ctx.channel.send("管理者のみ使用可能です")
 
@@ -113,6 +121,13 @@ class bosyu(commands.Cog):
             await ctx.channel.send(embed=embed)
         except discord.ext.commands.errors.CommandInvokeError:
             await ctx.channel.send("Playerlist is Empty")
+
+    @start.error#スタートコマンドのエラーハンドリング
+    async def start_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
+            await ctx.send("チームごとの人数を指定してください\n**例**\n```n!start 5```")
+        if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
+            await ctx.send("参加プレイヤーが足りません")
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -142,6 +157,7 @@ class bosyu(commands.Cog):
             if ign in self.players:
                 self.players.remove(ign)
             await user.send('参加を取り消しました')
+            await reaction.remove(user)
             conn.commit()
             c.close()
             conn.close()
