@@ -10,6 +10,14 @@ import MySQLdb
 
 class bosyu(commands.Cog):
     def __init__(self, bot):
+        self.conn = MySQLdb.connect(
+        user='admin',
+        passwd='OZmLQi6yXjvtmLvuKJWB',
+        host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
+        db='nakagawa',
+        charset="utf8",
+        autocommit=True
+        )
         self.bot = bot
         self.recruitid = 1
         self.players = []
@@ -19,24 +27,54 @@ class bosyu(commands.Cog):
         self.srice = 0
 
     @commands.command()
+    async def register(self, ctx, newid):
+        c = self.conn.cursor()
+        sql = f"SELECT COUNT(1) FROM playerdata WHERE id = {ctx.author.id}"
+        c.execute(sql)
+        if c.fetchone()[0]:
+            await ctx.send("すでに登録されています")
+        else:
+            sql = 'insert into playerdata values (%s, %s)'
+            c.execute(sql, (ctx.author.id, newid))#(msg.author.id, msg.content)
+            await ctx.send(f"UplayIDを:**{newid}**で登録しました")
+            
+
+    @commands.command()
+    async def checkid(self, ctx):#自分の登録されている名前を確認
+        c = self.conn.cursor()
+        sql = f'select ign from playerdata where id = {ctx.author.id}'#名前を取得
+        c.execute(sql)
+        await ctx.send(f"あなたのUplayIDは **{c.fetchone()[0]}** です")
+        c.close()
+
+
+    @commands.command()
     async def changeid(self, ctx, newid):
     #id変更コマンド
-        conn = MySQLdb.connect(
-        user='admin',
-        passwd='OZmLQi6yXjvtmLvuKJWB',
-        host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-        db='nakagawa',
-        charset="utf8"
-        )
-        c = conn.cursor()
-        sql = 'delete from playerdata where id=%s'
-        c.execute(sql, (ctx.author.id,))
-        sql = 'insert into playerdata values (%s, %s)'
-        c.execute(sql, (ctx.author.id, newid))
+        c = self.conn.cursor()
+        sql = f"update playerdata set ign = '{newid}' where id= {ctx.author.id};"
+        c.execute(sql)
         await ctx.channel.send(f"UplayIDを:**{newid}**にしました")
-        conn.commit()
         c.close()
-        conn.close()
+
+    @register.error
+    async def register_error(self, ctx, error):
+        if isinstance(error, commands.errors.CommandInvokeError):
+            await ctx.send("IDを入力してください\n例```n!register id```")
+
+    @checkid.error
+    async def checkid_error(self, ctx, error):
+        if isinstance(error, commands.errors.CommandInvokeError):
+            await ctx.send("IDが登録されていません\nregisterコマンドで設定してください\n例```n!register id```")
+
+
+
+    @changeid.error
+    async def changeid_eror(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
+            await ctx.send("設定するIDを入力してください\n例```n!changeid id```")
+        if isinstance(error, commands.errors.CommandInvokeError):
+            await ctx.send("IDが登録されていません\nregisterコマンドで設定してください\n例```n!register id```")
     
     @commands.command()
     async def resetall(self, ctx):
@@ -80,14 +118,7 @@ class bosyu(commands.Cog):
             else:
                 #それ以外の場合(つけられたリアクションが✅か🔚の場合)
                 if str(reaction) == '✅':#つけられたリアクションが✅ならチーム分け
-                    conn = MySQLdb.connect(#sqlサーバーにコネクト
-                    user='admin',
-                    passwd='OZmLQi6yXjvtmLvuKJWB',
-                    host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-                    db='nakagawa',
-                    charset="utf8"
-                    )
-                    c = conn.cursor()
+                    c = self.conn.cursor()
                     await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
                     print(f"参加済み:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
@@ -108,6 +139,7 @@ class bosyu(commands.Cog):
                     await ctx.channel.send(embed=embed)#チーム分けを送信
                     self.srice = 0#チーム分けの人数をリセット
                     self.players.clear()#抽選参加プレイヤーをクリア
+                    c.close()
                 elif str(reaction) == '🔚':#つけられたリアクションが🔚の場合
                     ctx.channel.send("募集をキャンセルします")
         else:
@@ -143,14 +175,7 @@ class bosyu(commands.Cog):
             return
         elif str(reaction.emoji) == '❌':   
             print("Cancel:❌")
-            conn = MySQLdb.connect(
-            user='admin',
-            passwd='OZmLQi6yXjvtmLvuKJWB',
-            host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-            db='nakagawa',
-            charset="utf8"
-            )
-            c = conn.cursor()
+            c = self.conn.cursor()
             sql = f"SELECT ign from playerdata WHERE id='{user.id}';"
             c.execute(sql)
             ign = c.fetchall()[0][0]
@@ -158,23 +183,14 @@ class bosyu(commands.Cog):
                 self.players.remove(ign)
             await user.send('参加を取り消しました')
             await reaction.remove(user)
-            conn.commit()
             c.close()
-            conn.close()
         else:
             print("Correct Reaciton:👍")
             userid = user.id
             if userid not in self.already:
                 self.already[userid] = 0
                 print(self.already)
-            conn = MySQLdb.connect(
-            user='admin',
-            passwd='OZmLQi6yXjvtmLvuKJWB',
-            host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-            db='nakagawa',
-            charset="utf8"
-            )
-            c = conn.cursor()
+            c = self.conn.cursor()
             sql = f"SELECT COUNT(1) FROM playerdata WHERE id = {int(userid)}"
             c.execute(sql)
             if c.fetchone()[0]:
@@ -193,7 +209,6 @@ class bosyu(commands.Cog):
                 await user.send("参加を受け付けました")
                 self.players.append(ign)
                 c.close()
-                conn.close()
             else:
                 print(f"Sent message to {userid}")
                 reactionuser = self.bot.get_user(userid)
@@ -214,9 +229,7 @@ class bosyu(commands.Cog):
                     sql = 'select * from playerdata;'
                     c.execute(sql)
                     print(c.fetchall())
-                    conn.commit()
                     c.close()
-                    conn.close()
                     await reactionuser.send(f"UplayIDを:**{msg.content}**で登録しました")
 
 
