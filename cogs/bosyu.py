@@ -25,6 +25,7 @@ class bosyu(commands.Cog):
         self.count = 0
         self.already = {}
         self.srice = 0
+        self.recruitm = None
 
     @commands.command()
     async def register(self, ctx, newid):
@@ -101,7 +102,8 @@ class bosyu(commands.Cog):
             else:
                 self.count = count
             print(f"COUNT IS {count} class count is {self.count}")
-            recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください")
+            recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください\n現在の参加プレイヤー数:**0**")
+            self.recruitm = recruit
             nrecruitid = recruit.id
             self.recruitid = nrecruitid
             await recruit.add_reaction("👍")
@@ -141,7 +143,7 @@ class bosyu(commands.Cog):
                     self.players.clear()#抽選参加プレイヤーをクリア
                     c.close()
                 elif str(reaction) == '🔚':#つけられたリアクションが🔚の場合
-                    ctx.channel.send("募集をキャンセルします")
+                    await ctx.channel.send("募集をキャンセルします")
         else:
             await ctx.channel.send("管理者のみ使用可能です")
 
@@ -181,7 +183,11 @@ class bosyu(commands.Cog):
             ign = c.fetchall()[0][0]
             if ign in self.players:
                 self.players.remove(ign)
-            await user.send('参加を取り消しました')
+                #recruitmessage = await reaction.message.channel.fetch_message(self.recruitid)
+                await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を押してください\n現在の参加プレイヤー数:**{len(self.players)}**")
+                await user.send('参加を取り消しました')
+            else:
+                await user.send("参加していないためキャンセルできませんでした")
             await reaction.remove(user)
             c.close()
         else:
@@ -208,6 +214,8 @@ class bosyu(commands.Cog):
                 print(ign)
                 await user.send("参加を受け付けました")
                 self.players.append(ign)
+                await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください\n現在の参加プレイヤー数:**{len(self.players)}**")
+                await reaction.remove(user)
                 c.close()
             else:
                 print(f"Sent message to {userid}")
