@@ -1,3 +1,7 @@
 discord.py[voice]==1.2.5
 mysqlclient
+<<<<<<< HEAD
 dispander
+=======
+dispander
+>>>>>>> f9e7ab9c7aa59304e85e5bc7310a58db057b1df2
