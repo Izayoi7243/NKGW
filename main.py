@@ -21,4 +21,5 @@ class MyBot(commands.Bot):
 
 if __name__ == '__main__':
     bot = MyBot(command_prefix='n!')
+    bot.load_extension('dispander')
     bot.run('NzMxNDgzNDE2MTYzNTE2NDg2.Xwm4rQ.KFa0X3ae8QFaR68W6SHoQiR-3D8') # Botのトークン
