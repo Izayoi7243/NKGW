@@ -93,6 +93,12 @@ class bosyu(commands.Cog):
         else:
             ctx.channel.send("このコマンドは管理者のみ使用可能です")
 
+    @commands.command()
+    async def fetch(self, ctx):
+        guildsa = self.bot.get_guild(722059814154534932)
+        target = guildsa.get_member(590846279748288512)
+        print(target.name)
+
     
     @commands.command()
     async def start(self, ctx, srice: int, count=0):
@@ -125,14 +131,16 @@ class bosyu(commands.Cog):
                     print(f"参加済み:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
                     print(f"srice = {srice}")
-                    self.srice = int(srice)      
-                    blue = self.players[:self.srice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
-                    orange = self.players[self.srice:self.srice*2]
-                    for ign in self.players[:10]:#当選したプレイヤー10人の名前をスライスでfor
-                        sql = f"SELECT id from playerdata WHERE ign='{ign}';"#当選したプレイヤーの名前からidを入手
+                    self.srice = int(srice)
+                    for i in self.players[:self.srice*2]:#チームごとの人数*2
+                        sql = f"SELECT ign from playerdata WHERE id='{i}';"#当選したプレイヤーの名前からidを入手
                         c.execute(sql)#sqlを実行
-                        did = c.fetchone()#idを代入
-                        self.already[did[0]] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
+                        did = c.fetchone()[0]#ignを代入
+                        self.lucky.append(did)
+                    blue = self.lucky[:self.srice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
+                    orange = self.lucky[self.srice:self.srice*2]
+                    for playerid in self.players[:10]:#当選したプレイヤー10人の名前をスライスでfor入
+                        self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
                     print(blue)#ブルーチーム
                     print(orange)#オレンジチーム
                     embed=discord.Embed(title="Team", color=0xffffff)
@@ -141,6 +149,7 @@ class bosyu(commands.Cog):
                     await ctx.channel.send(embed=embed)#チーム分けを送信
                     self.srice = 0#チーム分けの人数をリセット
                     self.players.clear()#抽選参加プレイヤーをクリア
+                    self.lucky.clear()
                     c.close()
                 elif str(reaction) == '🔚':#つけられたリアクションが🔚の場合
                     await ctx.channel.send("募集をキャンセルします")
@@ -165,6 +174,7 @@ class bosyu(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
+        guild = reaction.message.guild
         if user.id == 731483416163516486:
             print("It's bot")
             return
@@ -177,19 +187,18 @@ class bosyu(commands.Cog):
             return
         elif str(reaction.emoji) == '❌':   
             print("Cancel:❌")
-            c = self.conn.cursor()
-            sql = f"SELECT ign from playerdata WHERE id='{user.id}';"
-            c.execute(sql)
-            ign = c.fetchall()[0][0]
-            if ign in self.players:
-                self.players.remove(ign)
+            if user.id in self.players:
+                self.players.remove(user.id)
                 #recruitmessage = await reaction.message.channel.fetch_message(self.recruitid)
                 await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を押してください\n現在の参加プレイヤー数:**{len(self.players)}**")
-                await user.send('参加を取り消しました')
+                try:
+                    await user.send('参加を取り消しました')
+                except discord.errors.Forbidden:
+                    print(f"Failed sent to cancel message Name:{user.name}")
+
             else:
                 await user.send("参加していないためキャンセルできませんでした")
             await reaction.remove(user)
-            c.close()
         else:
             print("Correct Reaciton:👍")
             userid = user.id
@@ -200,45 +209,39 @@ class bosyu(commands.Cog):
             sql = f"SELECT COUNT(1) FROM playerdata WHERE id = {int(userid)}"
             c.execute(sql)
             if c.fetchone()[0]:
-                print(f"COUNT IS {self.count}!!!!!!!!!!!!!!")
                 if 1 <= self.already[userid] <= self.count:
                     await user.send(f"一度参加したため参加できません\nあと**{self.count}マッチ後**に参加できます※参加できるまで配信が続くかはわかりません")#参加した回数1
                     return
-                sql = f"SELECT ign from playerdata WHERE id='{user.id}';"
-                c.execute(sql)
-                ign = c.fetchall()[0][0]
-                if ign in self.players:
+                if userid in self.players:
                     print("You already joined")
                     return
-                print("YET")
-                print(ign)
-                await user.send("参加を受け付けました")
-                self.players.append(ign)
+                self.players.append(userid)
+                player = guild.get_member(userid)
+                print(f"Add player:{userid} NAME:{player.name}")
                 await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください\n現在の参加プレイヤー数:**{len(self.players)}**")
-                await reaction.remove(user)
                 c.close()
             else:
-                print(f"Sent message to {userid}")
-                reactionuser = self.bot.get_user(userid)
-                await reactionuser.create_dm()
-                dmid = reactionuser.dm_channel.id
+                await user.create_dm()
+                dmid = user.dm_channel.id
                 await reaction.remove(user)
-                await reactionuser.send("**UplayID**が未登録です。\n**UplayID**を送信してください\nまた**__IDを送信したあとに募集のメッセージにもう一度リアクションをつけてください__**")
-                await reactionuser.create_dm()
+                try:
+                    await user.send("**UplayID**が未登録です。\n**UplayID**を送信してください\nまた**__IDを送信したあとに募集のメッセージにもう一度リアクションをつけてください__**")
+                except discord.errors.Forbidden:
+                    print(f"Failed Send DM to {user.id}Name:{user.name}")
+                print(f"Sent message to {userid}")
+                await user.create_dm()
                 def check(m):
                     return userid == m.author.id and dmid == m.channel.id
                 try:
                     msg = await self.bot.wait_for('message', check=check, timeout = 60)
                 except asyncio.TimeoutError:
-                    await reactionuser.send('タイムアウトしました')
+                    await user.send('タイムアウトしました\nbotがメッセージ送信されてから60秒以内にIDを送ってください')
                 else:
                     sql = 'insert into playerdata values (%s, %s)'
                     c.execute(sql, (msg.author.id, msg.content))#(msg.author.id, msg.content)
-                    sql = 'select * from playerdata;'
-                    c.execute(sql)
-                    print(c.fetchall())
                     c.close()
-                    await reactionuser.send(f"UplayIDを:**{msg.content}**で登録しました")
+                    print(f"Register player Name:{msg.content}")
+                    await user.send(f"UplayIDを:**{msg.content}**で登録しました")
 
 
 def setup(bot):
