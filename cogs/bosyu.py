@@ -166,14 +166,17 @@ class bosyu(commands.Cog):
     
     @commands.command()
     async def changeplayer(self, ctx, before: str, after: str):
-        locate = self.lucky.index(before)
-        self.lucky[locate] = after
-        blue = self.lucky[:self.bluesrice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
-        orange = self.lucky[self.bluesrice:self.orangesrice*2]
-        embed=discord.Embed(title="Team", color=0xffffff)
-        embed.add_field(name="Blue", value='\n'.join(blue), inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
-        embed.add_field(name="Orange", value='\n'.join(orange), inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
-        await ctx.channel.send(embed=embed)#チーム分けを送信
+        if ctx.author.guild_permissions.administrator:
+            locate = self.lucky.index(before)
+            self.lucky[locate] = after
+            blue = self.lucky[:self.bluesrice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
+            orange = self.lucky[self.bluesrice:self.orangesrice*2]
+            embed=discord.Embed(title="Team", color=0xffffff)
+            embed.add_field(name="Blue", value='\n'.join(blue), inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
+            embed.add_field(name="Orange", value='\n'.join(orange), inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
+            await ctx.channel.send(embed=embed)#チーム分けを送信
+        else:
+            await ctx.send("管理者のみ使用可能です")
 
 
 
@@ -218,7 +221,8 @@ class bosyu(commands.Cog):
                     print(f"Failed sent to cancel message Name:{user.name}")
             else:
                 await user.send("参加していないためキャンセルできませんでした")
-            await reaction.remove(user)
+            for mreaction in reaction.message.reactions:
+                await mreaction.remove(user)
         else:
             print("Correct Reaciton:👍")
             userid = user.id
