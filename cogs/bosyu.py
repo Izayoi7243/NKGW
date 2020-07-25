@@ -102,12 +102,6 @@ class bosyu(commands.Cog):
             self.already.clear()
         else:
             ctx.channel.send("このコマンドは管理者のみ使用可能です")
-
-    @commands.command()
-    async def fetch(self, ctx):
-        guildsa = self.bot.get_guild(722059814154534932)
-        target = guildsa.get_member(590846279748288512)
-        print(target.name)
     
     @commands.command()
     async def start(self, ctx, bluesrice: int, orangesrice: int, count=0):
@@ -154,9 +148,11 @@ class bosyu(commands.Cog):
                     #     self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
                     print(blue)#ブルーチーム
                     print(orange)#オレンジチーム
+                    bjoin = '\n'.join(blue)
+                    ojoin = '\n'.join(orange)
                     embed=discord.Embed(title="Team", color=0xffffff)
-                    embed.add_field(name="Blue", value='\n'.join(blue), inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
-                    embed.add_field(name="Orange", value='\n'.join(orange), inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
+                    embed.add_field(name="Blue", value=f"```{bjoin}```", inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
+                    embed.add_field(name="Orange", value=f"```{ojoin}```", inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
                     await ctx.channel.send(embed=embed)#チーム分けを送信
                     c.close()
                 elif str(reaction) == '🔚':#つけられたリアクションが🔚の場合
@@ -182,8 +178,15 @@ class bosyu(commands.Cog):
 
     @commands.command()
     async def playerlist(self, ctx):
+        playerlist = []
         embed=discord.Embed(title="Players", color=0xffffff)
-        embed.add_field(name="All", value='\n'.join(self.players), inline=False)
+        for player in  self.players:
+            nguild = ctx.message.guild
+            joinuser = nguild.get_member(player)
+            res = joinuser.name
+            playerlist.append(res)
+        a = '\n'.join(playerlist)
+        embed.add_field(name="All", value=a, inline=False)
         try:
             await ctx.channel.send(embed=embed)
         except discord.ext.commands.errors.CommandInvokeError:
@@ -228,7 +231,6 @@ class bosyu(commands.Cog):
             userid = user.id
             if userid not in self.already:
                 self.already[userid] = 0
-                print(self.already)
             c = self.conn.cursor()
             sql = f"SELECT COUNT(1) FROM playerdata WHERE id = {int(userid)}"
             c.execute(sql)
@@ -243,6 +245,7 @@ class bosyu(commands.Cog):
                 player = guild.get_member(userid)
                 print(f"Add player:{userid} NAME:{player.name}")
                 await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください\n現在の参加プレイヤー数:**{len(self.players)}**")
+                print(self.players)
                 c.close()
             else:
                 await user.create_dm()
