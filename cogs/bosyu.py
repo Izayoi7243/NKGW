@@ -18,13 +18,14 @@ class bosyu(commands.Cog):
         charset="utf8",
         autocommit=True
         )
+        self.bluesrice = 0
+        self.redsrice = 0
         self.bot = bot
         self.recruitid = 1
         self.players = []
         self.lucky = []
         self.count = 0
         self.already = {}
-        self.srice = 0
         self.recruitm = None
 
     @commands.command()
@@ -38,14 +39,23 @@ class bosyu(commands.Cog):
             sql = 'insert into playerdata values (%s, %s)'
             c.execute(sql, (ctx.author.id, newid))#(msg.author.id, msg.content)
             await ctx.send(f"UplayIDを:**{newid}**で登録しました")
-            
+
 
     @commands.command()
     async def checkid(self, ctx):#自分の登録されている名前を確認
+        print("START")
+        if ctx.message.mentions:
+            print("TRUE")
+            target = ctx.message.mentions[0]
+            
+        else:   
+            print("FALSE")
+            target = ctx.author
         c = self.conn.cursor()
-        sql = f'select ign from playerdata where id = {ctx.author.id}'#名前を取得
+        print("GOCHECK")
+        sql = f'select ign from playerdata where id = {target.id}'#名前を取得
         c.execute(sql)
-        await ctx.send(f"あなたのUplayIDは **{c.fetchone()[0]}** です")
+        await ctx.send(f"{target.name}のUplayIDは **{c.fetchone()[0]}** です")
         c.close()
 
 
@@ -66,7 +76,7 @@ class bosyu(commands.Cog):
     @checkid.error
     async def checkid_error(self, ctx, error):
         if isinstance(error, commands.errors.CommandInvokeError):
-            await ctx.send("IDが登録されていません\nregisterコマンドで設定してください\n例```n!register id```")
+            await ctx.send("IDが登録されていません\nregisterコマンドで登録することができます\n例```n!register id```")
 
 
 
@@ -98,15 +108,18 @@ class bosyu(commands.Cog):
         guildsa = self.bot.get_guild(722059814154534932)
         target = guildsa.get_member(590846279748288512)
         print(target.name)
-
     
     @commands.command()
-    async def start(self, ctx, srice: int, count=0):
-        if ctx.author.guild_permissions.administrator:      
+    async def start(self, ctx, bluesrice: int, orangesrice: int, count=0):
+        if ctx.author.guild_permissions.administrator:   
             if count == 0:
                 self.count = 0
             else:
                 self.count = count
+            self.players.clear()#抽選参加プレイヤーをクリア
+            self.lucky.clear()#当選者のリセット
+            self.bluesrice = bluesrice
+            self.orangesrice = orangesrice
             print(f"COUNT IS {count} class count is {self.count}")
             recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください\n現在の参加プレイヤー数:**0**")
             self.recruitm = recruit
@@ -130,31 +143,39 @@ class bosyu(commands.Cog):
                     await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
                     print(f"参加済み:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
-                    print(f"srice = {srice}")
-                    self.srice = int(srice)
-                    for i in self.players[:self.srice*2]:#チームごとの人数*2
+                    for i in self.players[:orangesrice + bluesrice]:#チームごとの人数*2
                         sql = f"SELECT ign from playerdata WHERE id='{i}';"#当選したプレイヤーの名前からidを入手
                         c.execute(sql)#sqlを実行
                         did = c.fetchone()[0]#ignを代入
                         self.lucky.append(did)
-                    blue = self.lucky[:self.srice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
-                    orange = self.lucky[self.srice:self.srice*2]
-                    for playerid in self.players[:10]:#当選したプレイヤー10人の名前をスライスでfor入
-                        self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
+                    blue = self.lucky[:bluesrice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
+                    orange = self.lucky[bluesrice:orangesrice*2]
+                    # for playerid in self.players[:bluesrice+orangesrice]:#当選したプレイヤー10人の名前をスライスでfor入
+                    #     self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
                     print(blue)#ブルーチーム
                     print(orange)#オレンジチーム
                     embed=discord.Embed(title="Team", color=0xffffff)
                     embed.add_field(name="Blue", value='\n'.join(blue), inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
                     embed.add_field(name="Orange", value='\n'.join(orange), inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
                     await ctx.channel.send(embed=embed)#チーム分けを送信
-                    self.srice = 0#チーム分けの人数をリセット
-                    self.players.clear()#抽選参加プレイヤーをクリア
-                    self.lucky.clear()
                     c.close()
                 elif str(reaction) == '🔚':#つけられたリアクションが🔚の場合
                     await ctx.channel.send("募集をキャンセルします")
         else:
             await ctx.channel.send("管理者のみ使用可能です")
+    
+    @commands.command()
+    async def changeplayer(self, ctx, before: str, after: str):
+        locate = self.lucky.index(before)
+        self.lucky[locate] = after
+        blue = self.lucky[:self.bluesrice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
+        orange = self.lucky[self.bluesrice:self.orangesrice*2]
+        embed=discord.Embed(title="Team", color=0xffffff)
+        embed.add_field(name="Blue", value='\n'.join(blue), inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
+        embed.add_field(name="Orange", value='\n'.join(orange), inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
+        await ctx.channel.send(embed=embed)#チーム分けを送信
+
+
 
     @commands.command()
     async def playerlist(self, ctx):
@@ -195,7 +216,6 @@ class bosyu(commands.Cog):
                     await user.send('参加を取り消しました')
                 except discord.errors.Forbidden:
                     print(f"Failed sent to cancel message Name:{user.name}")
-
             else:
                 await user.send("参加していないためキャンセルできませんでした")
             await reaction.remove(user)
@@ -209,9 +229,9 @@ class bosyu(commands.Cog):
             sql = f"SELECT COUNT(1) FROM playerdata WHERE id = {int(userid)}"
             c.execute(sql)
             if c.fetchone()[0]:
-                if 1 <= self.already[userid] <= self.count:
-                    await user.send(f"一度参加したため参加できません\nあと**{self.count}マッチ後**に参加できます※参加できるまで配信が続くかはわかりません")#参加した回数1
-                    return
+                # if 1 <= self.already[userid] <= self.count:
+                #     await user.send(f"一度参加したため参加できません\nあと**{self.count}マッチ後**に参加できます※参加できるまで配信が続くかはわかりません")#参加した回数1
+                #     return
                 if userid in self.players:
                     print("You already joined")
                     return
