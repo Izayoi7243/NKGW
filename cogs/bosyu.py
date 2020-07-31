@@ -3,7 +3,7 @@ import discord
 import asyncio
 import random
 import MySQLdb
-
+import os
 
 
 
@@ -11,10 +11,10 @@ import MySQLdb
 class bosyu(commands.Cog):
     def __init__(self, bot):
         self.conn = MySQLdb.connect(
-        user='admin',
-        passwd='OZmLQi6yXjvtmLvuKJWB',
-        host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-        db='nakagawa',
+        user=os.environ['user'],
+        passwd=os.environ['password'],
+        host=os.environ['host']
+        db=os.environ['db'],
         charset="utf8",
         autocommit=True
         )
