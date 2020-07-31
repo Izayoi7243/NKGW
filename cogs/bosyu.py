@@ -13,7 +13,7 @@ class bosyu(commands.Cog):
         self.conn = MySQLdb.connect(
         user=os.environ['user'],
         passwd=os.environ['password'],
-        host=os.environ['host']
+        host=os.environ['host'],
         db=os.environ['db'],
         charset="utf8",
         autocommit=True
