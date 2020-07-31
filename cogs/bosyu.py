@@ -43,19 +43,17 @@ class bosyu(commands.Cog):
 
     @commands.command()
     async def checkid(self, ctx):#自分の登録されている名前を確認
-        print("START")
         if ctx.message.mentions:
-            print("TRUE")
             target = ctx.message.mentions[0]
-            
+            print("*mention*")
         else:   
-            print("FALSE")
             target = ctx.author
         c = self.conn.cursor()
-        print("GOCHECK")
         sql = f'select ign from playerdata where id = {target.id}'#名前を取得
         c.execute(sql)
-        await ctx.send(f"{target.name}のUplayIDは **{c.fetchone()[0]}** です")
+        ign = c.fetchone()[0]
+        print(f"{target.name} is {ign}")
+        await ctx.send(f"{target.name}のUplayIDは **{ign}** です")
         c.close()
 
 
@@ -78,8 +76,6 @@ class bosyu(commands.Cog):
         if isinstance(error, commands.errors.CommandInvokeError):
             await ctx.send("IDが登録されていません\nregisterコマンドで登録することができます\n例```n!register id```")
 
-
-
     @changeid.error
     async def changeid_eror(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
@@ -93,15 +89,16 @@ class bosyu(commands.Cog):
             self.already.clear()
             self.players.clear()
             self.lucky.clear()
+            await ctx.send("参加プレイヤーと当選プレイヤーをリセットしました")
         else:
             ctx.channel.send("このコマンドは管理者のみ使用可能です")
 
-    @commands.command()
-    async def resetplay(self, ctx):
-        if ctx.author.guild_permissions.administrator:
-            self.already.clear()
-        else:
-            ctx.channel.send("このコマンドは管理者のみ使用可能です")
+    # @commands.command()
+    # async def resetplay(self, ctx):
+    #     if ctx.author.guild_permissions.administrator:
+    #         self.already.clear()
+    #     else:
+    #         ctx.channel.send("このコマンドは管理者のみ使用可能です")
     
     @commands.command()
     async def start(self, ctx, bluesrice: int, orangesrice: int, count=0):
@@ -143,16 +140,18 @@ class bosyu(commands.Cog):
                         did = c.fetchone()[0]#ignを代入
                         self.lucky.append(did)
                     blue = self.lucky[:bluesrice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
-                    orange = self.lucky[bluesrice:orangesrice*2]
+                    orange = self.lucky[bluesrice:]
                     # for playerid in self.players[:bluesrice+orangesrice]:#当選したプレイヤー10人の名前をスライスでfor入
                     #     self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
                     print(blue)#ブルーチーム
                     print(orange)#オレンジチーム
                     bjoin = '\n'.join(blue)
                     ojoin = '\n'.join(orange)
+                    print(bjoin)
+                    print(ojoin)
                     embed=discord.Embed(title="Team", color=0xffffff)
-                    embed.add_field(name="Blue", value=f"```{bjoin}```", inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
-                    embed.add_field(name="Orange", value=f"```{ojoin}```", inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
+                    embed.add_field(name="Blue", value=f"```\n{bjoin}```", inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
+                    embed.add_field(name="Orange", value=f"```\n{ojoin}```", inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
                     await ctx.channel.send(embed=embed)#チーム分けを送信
                     c.close()
                 elif str(reaction) == '🔚':#つけられたリアクションが🔚の場合
@@ -174,23 +173,33 @@ class bosyu(commands.Cog):
         else:
             await ctx.send("管理者のみ使用可能です")
 
-
+    @commands.command()
+    async def getmember(self, ctx, ign: str):
+        c = self.conn.cursor()
+        sql = f'select id from playerdata where ign = "{ign}"'
+        c.execute(sql)
+        id = c.fetchone()
+        nguild = ctx.message.guild
+        member = nguild.get_member(int(id[0]))
+        # await ctx.send(member.name)
+        await ctx.send(member)
 
     @commands.command()
-    async def playerlist(self, ctx):
+    async def playerlist(self, ctx, guildid = 722059814154534932):
         playerlist = []
         embed=discord.Embed(title="Players", color=0xffffff)
         for player in  self.players:
-            nguild = ctx.message.guild
+            c = self.conn.cursor()
+            sql = f'select ign from playerdata where id = "{player}"'
+            c.execute(sql)
+            ign = c.fetchone()
+            nguild = self.bot.get_guild(int(guildid))
             joinuser = nguild.get_member(player)
-            res = joinuser.name
+            res = f"{joinuser.name}:{ign[0]}"
             playerlist.append(res)
         a = '\n'.join(playerlist)
-        embed.add_field(name="All", value=a, inline=False)
-        try:
-            await ctx.channel.send(embed=embed)
-        except discord.ext.commands.errors.CommandInvokeError:
-            await ctx.channel.send("Playerlist is Empty")
+        embed.add_field(name="All", value=f"```{a}```", inline=False)
+        await ctx.channel.send(embed=embed)
 
     @start.error#スタートコマンドのエラーハンドリング
     async def start_error(self, ctx, error):
