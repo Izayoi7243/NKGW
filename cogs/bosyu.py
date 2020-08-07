@@ -54,7 +54,7 @@ class bosyu(commands.Cog):
             print("*mention*")
         elif args[0].isdigit():
             print(f"Targrt id = {args[0]}")
-            target = self.bot.get_user(int(args))
+            target = self.bot.get_user(int(args[0]))
             print("*id*")
         else:
             target = ctx.author
