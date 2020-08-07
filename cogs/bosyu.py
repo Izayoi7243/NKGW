@@ -28,7 +28,7 @@ class bosyu(commands.Cog):
         self.already = {}
         self.recruitm = None
         print(
-            os.environ['user']
+            os.environ['user'],
             os.environ['password'],
             os.environ['host'],
             os.environ['db'],
