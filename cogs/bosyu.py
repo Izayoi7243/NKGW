@@ -48,14 +48,17 @@ class bosyu(commands.Cog):
 
 
     @commands.command()
-    async def checkid(self, ctx, *args=('None')):#自分の登録されている名前を確認
+    async def checkid(self, ctx, *args):#自分の登録されている名前を確認
         if ctx.message.mentions:
             target = ctx.message.mentions[0]
             print("*mention*")
-        elif args[0].isdigit():
-            print(f"Targrt id = {args[0]}")
-            target = self.bot.get_user(int(args[0]))
-            print("*id*")
+        elif args:   
+            if args[0].isdigit():
+                print(f"Targrt id = {args[0]}")
+                target = self.bot.get_user(int(args[0]))
+                print("*id*")
+            else:
+                ctx.send("IDを指定する場合は数値で指定ください")
         else:
             target = ctx.author
             print("*author*")
