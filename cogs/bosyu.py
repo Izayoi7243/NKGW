@@ -82,10 +82,10 @@ class bosyu(commands.Cog):
         if isinstance(error, commands.errors.CommandInvokeError):
             await ctx.send("IDを入力してください\n例```n!register id```")
 
-#     @checkid.error
-#     async def checkid_error(self, ctx, error):
-#         if isinstance(error, commands.errors.CommandInvokeError):
-#             await ctx.send("IDが登録されていません\nregisterコマンドで登録することができます\n例```n!register id```")
+    @checkid.error
+    async def checkid_error(self, ctx, error):
+        if isinstance(error, commands.errors.CommandInvokeError):
+            await ctx.send("IDが登録されていません\nregisterコマンドで登録することができます\n例```n!register id```")
 
     @changeid.error
     async def changeid_eror(self, ctx, error):
