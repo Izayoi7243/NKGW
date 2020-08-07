@@ -54,8 +54,10 @@ class bosyu(commands.Cog):
             print("*mention*")
         elif args.isdigit():
             target = self.bot.get_user(args)
+            print("*id*")
         else:
             target = ctx.author
+            print("*author*")
         c = self.conn.cursor()
         sql = f'select ign from playerdata where id = {target.id}'#名前を取得
         c.execute(sql)
