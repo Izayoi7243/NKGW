@@ -206,9 +206,8 @@ class bosyu(commands.Cog):
             sql = f'select ign from playerdata where id = "{player}"'
             c.execute(sql)
             ign = c.fetchone()
-            nguild = self.bot.get_guild(int(guildid))
-            joinuser = nguild.get_member(player)
-            res = f"{joinuser.name}:{ign[0]}"
+            joinuser = self.get_user(player)
+            res = f"```{joinuser.name}:{ign[0]}```"
             playerlist.append(res)
         a = '\n'.join(playerlist)
         embed.add_field(name="All", value=f"```{a}```", inline=False)
