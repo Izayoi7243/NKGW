@@ -51,12 +51,12 @@ class bosyu(commands.Cog):
     async def checkid(self, ctx, *args):#自分の登録されている名前を確認
         if ctx.message.mentions:
             target = ctx.message.mentions[0]
-            print("*mention*")
+            #print("*mention*")
         elif args:   
             if args[0].isdigit():
-                print(f"Targrt id = {args[0]}")
+                #print(f"Targrt id = {args[0]}")
                 target = self.bot.get_user(int(args[0]))
-                print("*id*")
+                #print("*id*")
             else:
                 ctx.send("IDを指定する場合は数値で指定ください")
         else:
@@ -66,7 +66,7 @@ class bosyu(commands.Cog):
         sql = f'select ign from playerdata where id = {target.id}'#名前を取得
         c.execute(sql)
         ign = c.fetchone()[0]
-        print(f"{target.name} is {ign}")
+        #print(f"{target.name} is {ign}")
         await ctx.send(f"{target.name}のUplayIDは **{ign}** です")
         c.close()
 
@@ -125,7 +125,7 @@ class bosyu(commands.Cog):
             self.lucky.clear()#当選者のリセット
             self.bluesrice = bluesrice
             self.orangesrice = orangesrice
-            print(f"COUNT IS {count} class count is {self.count}")
+            #print(f"COUNT IS {count} class count is {self.count}")
             recruit = await ctx.channel.send("カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください\n現在の参加プレイヤー数:**0**")
             self.recruitm = recruit
             nrecruitid = recruit.id
@@ -146,7 +146,7 @@ class bosyu(commands.Cog):
                 if str(reaction) == '✅':#つけられたリアクションが✅ならチーム分け
                     c = self.conn.cursor()
                     await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
-                    print(f"参加済み:{self.players}")
+                    print(f"抽選プレイヤーID:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
                     for i in self.players[:orangesrice + bluesrice]:#チームごとの人数*2
                         sql = f"SELECT ign from playerdata WHERE id='{i}';"#当選したプレイヤーの名前からidを入手
@@ -161,8 +161,6 @@ class bosyu(commands.Cog):
                     print(orange)#オレンジチーム
                     bjoin = '\n'.join(blue)
                     ojoin = '\n'.join(orange)
-                    print(bjoin)
-                    print(ojoin)
                     embed=discord.Embed(title="Team", color=0xffffff)
                     embed.add_field(name="Blue", value=f"```\n{bjoin}```", inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
                     embed.add_field(name="Orange", value=f"```\n{ojoin}```", inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
@@ -231,17 +229,17 @@ class bosyu(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         guild = reaction.message.guild
         if user.id == 731483416163516486:
-            print("It's bot")
+            #print("It's bot")
             return
         elif str(reaction.emoji) != '👍' and str(reaction.emoji) != '❌':
-            print("Not this reaction")
+            #print("Not this reaction")
             return
         elif self.recruitid != reaction.message.id:
-            print(f"messageid:{self.recruitid} != reactionid:{reaction.message.id}")
-            print("not this massage")
+            #print(f"messageid:{self.recruitid} != reactionid:{reaction.message.id}")
+            #print("not this massage")
             return
         elif str(reaction.emoji) == '❌':   
-            print("Cancel:❌")
+            #print("Cancel:❌")
             if user.id in self.players:
                 self.players.remove(user.id)
                 #recruitmessage = await reaction.message.channel.fetch_message(self.recruitid)
@@ -249,13 +247,13 @@ class bosyu(commands.Cog):
                 try:
                     await user.send('参加を取り消しました')
                 except discord.errors.Forbidden:
-                    print(f"Failed sent to cancel message Name:{user.name}")
+                    print(f"Failed to send cancel message Name:{user.name}")
             else:
                 await user.send("参加していないためキャンセルできませんでした")
             for mreaction in reaction.message.reactions:
                 await mreaction.remove(user)
         else:
-            print("Correct Reaciton:👍")
+            print("Join:👍")
             userid = user.id
             if userid not in self.already:
                 self.already[userid] = 0
@@ -273,7 +271,7 @@ class bosyu(commands.Cog):
                 player = guild.get_member(userid)
                 print(f"Add player:{userid} NAME:{player.name}")
                 await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を推してください\n現在の参加プレイヤー数:**{len(self.players)}**")
-                print(self.players)
+                #print(self.players)
                 c.close()
             else:
                 await user.create_dm()
@@ -282,8 +280,8 @@ class bosyu(commands.Cog):
                 try:
                     await user.send("**UplayID**が未登録です。\n**UplayID**を送信してください\nまた**__IDを送信したあとに募集のメッセージにもう一度リアクションをつけてください__**")
                 except discord.errors.Forbidden:
-                    print(f"Failed Send DM to {user.id}Name:{user.name}")
-                print(f"Sent message to {userid}")
+                    print(f"Failed to send message {user.id}Name:{user.name}")
+                print(f"Send to message {userid}")
                 await user.create_dm()
                 def check(m):
                     return userid == m.author.id and dmid == m.channel.id
