@@ -48,11 +48,13 @@ class bosyu(commands.Cog):
 
 
     @commands.command()
-    async def checkid(self, ctx):#自分の登録されている名前を確認
+    async def checkid(self, ctx, *args):#自分の登録されている名前を確認
         if ctx.message.mentions:
             target = ctx.message.mentions[0]
             print("*mention*")
-        else:   
+        elif args.isdigit():
+            target = self.bot.get_user(args)
+        else:
             target = ctx.author
         c = self.conn.cursor()
         sql = f'select ign from playerdata where id = {target.id}'#名前を取得
