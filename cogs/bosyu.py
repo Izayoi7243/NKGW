@@ -185,8 +185,7 @@ class bosyu(commands.Cog):
         sql = f'select id from playerdata where ign = "{ign}"'
         c.execute(sql)
         id = c.fetchone()
-        nguild = ctx.message.guild
-        member = nguild.get_member(int(id[0]))
+        member = self.bot.get_user(int(id[0]))
         # await ctx.send(member.name)
         await ctx.send(member)
         
@@ -206,7 +205,7 @@ class bosyu(commands.Cog):
             sql = f'select ign from playerdata where id = "{player}"'
             c.execute(sql)
             ign = c.fetchone()
-            joinuser = self.get_user(player)
+            joinuser = self.bot.get_user(player)
             res = f"```{joinuser.name}:{ign[0]}```"
             playerlist.append(res)
         a = '\n'.join(playerlist)
