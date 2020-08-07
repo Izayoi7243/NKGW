@@ -157,8 +157,8 @@ class bosyu(commands.Cog):
                     orange = self.lucky[bluesrice:]
                     # for playerid in self.players[:bluesrice+orangesrice]:#当選したプレイヤー10人の名前をスライスでfor入
                     #     self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
-                    print(blue)#ブルーチーム
-                    print(orange)#オレンジチーム
+                    print(f"Blue:{blue}")#ブルーチーム
+                    print(f"Orange:{orange}")#オレンジチーム
                     bjoin = '\n'.join(blue)
                     ojoin = '\n'.join(orange)
                     embed=discord.Embed(title="Team", color=0xffffff)
