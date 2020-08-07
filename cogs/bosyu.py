@@ -48,7 +48,7 @@ class bosyu(commands.Cog):
 
 
     @commands.command()
-    async def checkid(self, ctx, *args):#自分の登録されている名前を確認
+    async def checkid(self, ctx, *args=('None')):#自分の登録されている名前を確認
         if ctx.message.mentions:
             target = ctx.message.mentions[0]
             print("*mention*")
