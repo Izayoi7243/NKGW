@@ -189,6 +189,13 @@ class bosyu(commands.Cog):
         member = nguild.get_member(int(id[0]))
         # await ctx.send(member.name)
         await ctx.send(member)
+        
+    @getmember.error#スタートコマンドのエラーハンドリング
+    async def getmember_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
+            await ctx.send("UPLAYIDを指定してください")
+        if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
+            await ctx.send("該当するメンバーがいません")
 
     @commands.command()
     async def playerlist(self, ctx, guildid = 722059814154534932):
