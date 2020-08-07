@@ -27,6 +27,12 @@ class bosyu(commands.Cog):
         self.count = 0
         self.already = {}
         self.recruitm = None
+        print(
+            os.environ['user']
+            os.environ['password'],
+            os.environ['host'],
+            os.environ['db'],
+        )
 
     @commands.command()
     async def register(self, ctx, newid):
