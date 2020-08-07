@@ -53,7 +53,7 @@ class bosyu(commands.Cog):
             target = ctx.message.mentions[0]
             print("*mention*")
         elif args[0].isdigit():
-            print(f"Targrt id = {*args[0]}")
+            print(f"Targrt id = {args[0]}")
             target = self.bot.get_user(int(args))
             print("*id*")
         else:
