@@ -99,7 +99,7 @@ class bosyu(commands.Cog):
     
     @commands.command()
     async def resetall(self, ctx):
-        if ctx.author.guild_permissions.administrator:
+        if ctx.author.guild_permissions.administrator or ctx.message.guild.get_role(741998241989525575) in ctx.message.author.roles:
             self.already.clear()
             self.players.clear()
             self.lucky.clear()
@@ -116,7 +116,7 @@ class bosyu(commands.Cog):
     
     @commands.command()
     async def start(self, ctx, bluesrice: int, orangesrice: int, count=0):
-        if ctx.author.guild_permissions.administrator or ctx.message.guild.get_role(741998241989525575) in ctx.message.author.roles:   
+        if ctx.author.guild_permissions.administrator or ctx.message.guild.get_role(741998241989525575) in ctx.message.author.roles:
             if count == 0:
                 self.count = 0
             else:
@@ -173,7 +173,7 @@ class bosyu(commands.Cog):
     
     @commands.command()
     async def changeplayer(self, ctx, before: str, after: str):
-        if ctx.author.guild_permissions.administrator:
+        if ctx.author.guild_permissions.administrator or ctx.message.guild.get_role(741998241989525575) in ctx.message.author.roles:
             locate = self.lucky.index(before)
             self.lucky[locate] = after
             blue = self.lucky[:self.bluesrice]#シャッフルしたリストの中からself.sriceというチームごとの人数が入った変数を使ってスライス
