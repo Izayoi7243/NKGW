@@ -290,11 +290,19 @@ class bosyu(commands.Cog):
                 except asyncio.TimeoutError:
                     await user.send('タイムアウトしました\nbotがメッセージ送信されてから60秒以内にIDを送ってください')
                 else:
-                    sql = 'insert into playerdata values (%s, %s)'
-                    c.execute(sql, (msg.author.id, msg.content))#(msg.author.id, msg.content)
-                    c.close()
-                    print(f"Register player Name:{msg.content}")
-                    await user.send(f"UplayIDを:**{msg.content}**で登録しました")
+                    sql = f'select id from playerdata where id = {userid}'
+                    c.execute(sql)
+                    uplayids = c.fetchall()
+                    print(uplayids)
+                    if len(uplayids) > 0:
+                        await user.send("既に登録されています")
+                        return
+                    else:
+                        sql = 'insert into playerdata values (%s, %s)'
+                        c.execute(sql, (msg.author.id, msg.content))#(msg.author.id, msg.content)
+                        c.close()
+                        print(f"Register player Name:{msg.content}")
+                        await user.send(f"UplayIDを:**{msg.content}**で登録しました")
 
 
 def setup(bot):
