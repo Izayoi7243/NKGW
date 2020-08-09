@@ -116,7 +116,7 @@ class bosyu(commands.Cog):
     
     @commands.command()
     async def start(self, ctx, bluesrice: int, orangesrice: int, count=0):
-        if ctx.author.guild_permissions.administrator:   
+        if ctx.author.guild_permissions.administrator or ctx.message.guild.get_role(741998241989525575) in ctx.message.author.roles:   
             if count == 0:
                 self.count = 0
             else:
