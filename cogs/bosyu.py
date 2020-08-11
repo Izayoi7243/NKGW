@@ -18,6 +18,7 @@ class bosyu(commands.Cog):
         charset="utf8",
         autocommit=True
         )
+        self.connecter.start()
         self.bluesrice = 0
         self.redsrice = 0
         self.bot = bot
@@ -34,6 +35,18 @@ class bosyu(commands.Cog):
             os.environ['db'],
         )
 
+    @tasks.loop(hours=4.0)
+    async def connecter(self):
+        self.conn.close()
+        self.conn = MySQLdb.connect(
+        user=os.environ['user'],
+        passwd=os.environ['password'],
+        host=os.environ['host'],
+        db=os.environ['db'],
+        charset="utf8",
+        autocommit=True
+        )
+
     @commands.command()
     async def register(self, ctx, newid):
         c = self.conn.cursor()
@@ -45,6 +58,7 @@ class bosyu(commands.Cog):
             sql = 'insert into playerdata values (%s, %s)'
             c.execute(sql, (ctx.author.id, newid))#(msg.author.id, msg.content)
             await ctx.send(f"UplayIDを:**{newid}**で登録しました")
+        c.close()
 
 
     @commands.command()
