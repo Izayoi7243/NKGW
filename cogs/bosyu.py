@@ -232,12 +232,12 @@ class bosyu(commands.Cog):
         embed.add_field(name="All", value=f"```{a}```", inline=False)
         await ctx.channel.send(embed=embed)
 
-    @start.error#スタートコマンドのエラーハンドリング
-    async def start_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
-            await ctx.send("チームごとの人数を指定してください\n**例**\n```n!start 5```")
-        if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
-            await ctx.send("参加プレイヤーが足りません")
+#     @start.error#スタートコマンドのエラーハンドリング
+#     async def start_error(self, ctx, error):
+#         if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
+#             await ctx.send("チームごとの人数を指定してください\n**例**\n```n!start 5```")
+#         if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
+#             await ctx.send("参加プレイヤーが足りません")
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
