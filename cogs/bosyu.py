@@ -147,7 +147,7 @@ class bosyu(commands.Cog):
             await recruit.add_reaction("👍")
             await recruit.add_reaction("❌")
             def check(reaction, user):
-                return user.guild_permissions.administrator == reaction.message.author.guild_permissions.administrator and str(reaction.emoji) == '✅' or user.guild_permissions.administrator == reaction.message.author.guild_permissions.administrator and str(reaction.emoji) == '🔚' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and str(reaction.emoji) == '✅' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and str(reaction.emoji) == '🔚'  
+                return user.guild_permissions.administrator == True and reaction.message.id == self.recruitid and str(reaction.emoji) == '✅' or user.guild_permissions.administrator == True and reaction.message.id == self.recruitid and str(reaction.emoji) == '🔚' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and reaction.message.id == self.recruitid and str(reaction.emoji) == '✅' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and reaction.message.id == self.recruitid  and str(reaction.emoji) == '🔚'    
                 #もしつけられたリアクションが✅か🔚だったというcheck関数
             try:
                 reaction, user = await self.bot.wait_for('reaction_add', check=check)
