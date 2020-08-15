@@ -28,7 +28,6 @@ class bosyu(commands.Cog):
         self.count = 0
         self.already = {}
         self.recruitm = None
-        self.log_c = self.bot.get_channel(744180284584493086)
         print(
             os.environ['user'],
             os.environ['password'],
@@ -159,13 +158,14 @@ class bosyu(commands.Cog):
             else:
                 #それ以外の場合(つけられたリアクションが✅か🔚の場合)
                 if str(reaction) == '✅':#つけられたリアクションが✅ならチーム分け
+                    log_c = self.bot.get_channel(744180284584493086)
                     c = self.conn.cursor()
                     await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
                     print(f"シャッフル前プレイヤーID:{self.players}")
-                    await self.log_c.send(f"シャッフル前プレイヤーID:{self.players}")
+                    await log_c.send(f"シャッフル前プレイヤーID:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
                     print(f"シャッフル後プレイヤーID:{self.players}")
-                    await self.log_c.send(f"シャッフル後プレイヤーID:{self.players}")
+                    await log_c.send(f"シャッフル後プレイヤーID:{self.players}")
                     for i in self.players[:orangesrice + bluesrice]:#チームごとの人数*2
                         sql = f"SELECT ign from playerdata WHERE id='{i}';"#当選したプレイヤーの名前からidを入手
                         c.execute(sql)#sqlを実行
@@ -176,9 +176,9 @@ class bosyu(commands.Cog):
                     # for playerid in self.players[:bluesrice+orangesrice]:#当選したプレイヤー10人の名前をスライスでfor入
                     #     self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
                     print(f"Blue:{blue}")#ブルーチーム
-                    await self.log_c.send(f"Blue:{blue}")
+                    await log_c.send(f"Blue:{blue}")
                     print(f"Orange:{orange}")#オレンジチーム
-                    await self.log_c.send(f"Orange:{orange}")
+                    await log_c.send(f"Orange:{orange}")
                     bjoin = '\n'.join(blue)
                     ojoin = '\n'.join(orange)
                     embed=discord.Embed(title="Team", color=0xffffff)
