@@ -28,7 +28,7 @@ class bosyu(commands.Cog):
         self.count = 0
         self.already = {}
         self.recruitm = None
-        self.log_c = bot.get_channel(744180284584493086)
+        self.log_c = self.bot.get_channel(744180284584493086)
         print(
             os.environ['user'],
             os.environ['password'],
