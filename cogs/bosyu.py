@@ -28,6 +28,7 @@ class bosyu(commands.Cog):
         self.count = 0
         self.already = {}
         self.recruitm = None
+        self.log_c = bot.get_channel(744180284584493086)
         print(
             os.environ['user'],
             os.environ['password'],
@@ -160,8 +161,9 @@ class bosyu(commands.Cog):
                 if str(reaction) == '✅':#つけられたリアクションが✅ならチーム分け
                     c = self.conn.cursor()
                     await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
-                    print(f"抽選プレイヤーID:{self.players}")
+                    print(f"シャッフル前プレイヤーID:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
+                    print(f"シャッフル後プレイヤーID:{self.players}}")
                     for i in self.players[:orangesrice + bluesrice]:#チームごとの人数*2
                         sql = f"SELECT ign from playerdata WHERE id='{i}';"#当選したプレイヤーの名前からidを入手
                         c.execute(sql)#sqlを実行
