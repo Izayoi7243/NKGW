@@ -163,7 +163,6 @@ class bosyu(commands.Cog):
                     await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
                     print(f"シャッフル前プレイヤーID:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
-                    self.players = [1]
                     print(f"シャッフル後プレイヤーID:{self.players}")
                     for i in self.players[:orangesrice + bluesrice]:#チームごとの人数*2
                         sql = f"SELECT ign from playerdata WHERE id='{i}';"#当選したプレイヤーの名前からidを入手
