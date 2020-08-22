@@ -11,10 +11,10 @@ import os
 class hime(commands.Cog):
     def __init__(self, bot):
         self.conn = MySQLdb.connect(
-        user='admin',
-        passwd='OZmLQi6yXjvtmLvuKJWB',
-        host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-        db='nakagawa',
+        user=os.environ['user'],
+        passwd=os.environ['password'],
+        host=os.environ['host'],
+        db=os.environ['db'],
         charset="utf8",
         autocommit=True
         )
@@ -39,17 +39,13 @@ class hime(commands.Cog):
     async def connecter(self):
         self.conn.close()
         self.conn = MySQLdb.connect(
-        user='admin',
-        passwd='OZmLQi6yXjvtmLvuKJWB',
-        host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-        db='nakagawa',
+        user=os.environ['user'],
+        passwd=os.environ['password'],
+        host=os.environ['host'],
+        db=os.environ['db'],
         charset="utf8",
         autocommit=True
         )
-
-    @commands.command()
-    async def emoji(self,ctx):
-        await ctx.send(self.tsugumiemoji)
     
     @commands.command()
     async def hime(self, ctx, bluesrice: int, orangesrice: int, teamname_b = "つぐみ軍", teamname_o = "れいな郡"):
