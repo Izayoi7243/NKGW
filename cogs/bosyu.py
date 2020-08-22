@@ -8,7 +8,7 @@ import os
 
 
 
-class bosyu(commands.Cog):
+class normal(commands.Cog):
     def __init__(self, bot):
         self.conn = MySQLdb.connect(
         user=os.environ['user'],
@@ -326,4 +326,4 @@ class bosyu(commands.Cog):
 
 
 def setup(bot):
-     bot.add_cog(bosyu(bot))
+     bot.add_cog(normal(bot))
