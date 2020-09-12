@@ -5,16 +5,13 @@ import random
 import MySQLdb
 import os
 
-
-
-
 class normal(commands.Cog):
     def __init__(self, bot):
         self.conn = MySQLdb.connect(
-        user=os.environ['user'],
-        passwd=os.environ['password'],
-        host=os.environ['host'],
-        db=os.environ['db'],
+        user=os.environ['nakagawadb_user'],
+        passwd=os.environ['nakagawadb_passwd'],
+        host=os.environ['nakagawadb_host'],
+        db=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
@@ -28,21 +25,15 @@ class normal(commands.Cog):
         self.count = 0
         self.already = {}
         self.recruitm = None
-        print(
-            os.environ['user'],
-            os.environ['password'],
-            os.environ['host'],
-            os.environ['db'],
-        )
 
     @tasks.loop(hours=4.0)
     async def connecter(self):
         self.conn.close()
         self.conn = MySQLdb.connect(
-        user=os.environ['user'],
-        passwd=os.environ['password'],
-        host=os.environ['host'],
-        db=os.environ['db'],
+        user=os.environ['nakagawadb_user'],
+        passwd=os.environ['nakagawadb_passwd'],
+        host=os.environ['nakagawadb_host'],
+        db=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
@@ -121,13 +112,6 @@ class normal(commands.Cog):
         else:
             ctx.channel.send("このコマンドは管理者のみ使用可能です")
 
-    # @commands.command()
-    # async def resetplay(self, ctx):
-    #     if ctx.author.guild_permissions.administrator:
-    #         self.already.clear()
-    #     else:
-    #         ctx.channel.send("このコマンドは管理者のみ使用可能です")
-    
     @commands.command()
     async def start(self, ctx, bluesrice: int, orangesrice: int, count=0):
         if ctx.author.guild_permissions.administrator or ctx.message.guild.get_role(741998241989525575) in ctx.message.author.roles:
@@ -238,12 +222,21 @@ class normal(commands.Cog):
         embed.add_field(name="All", value=f"```{a}```", inline=False)
         await ctx.channel.send(embed=embed)
 
-#     @start.error#スタートコマンドのエラーハンドリング
-#     async def start_error(self, ctx, error):
-#         if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
-#             await ctx.send("チームごとの人数を指定してください\n**例**\n```n!start 5```")
-#         if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
-#             await ctx.send("参加プレイヤーが足りません")
+    @commands.command()
+    async def kusozatumap(self, ctx):
+        eslmapsdic = {
+            'クラブハウス':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/1vCw5eD2XzxZlv6Au1gtui/a173a37999379b65dad7b37a77c24498/r6-maps-clubhouse.jpg',
+            'カフェ':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/2nIuPSHvbM57TK90VSwBEm/70144ada56cf1ba72103aeb4ece9ed1a/r6-maps-kafe.jpg',
+            '領事館':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/6PR2sBla9E6TNurVUfJ0mc/860cab16eb1d4cd27ea356a1c3fe9591/r6-maps-consulate.jpg',
+            '国境':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/4hqsrL3cokFqedkfjiEaGf/b91bc482243b56531f999912de6d0bcb/r6-maps-border.jpg',
+            '海岸線':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/5GfAQ3pXCJnDqiqaDH3Zic/2a491e0c4c184c28a88792d85279e551/r6-maps-coastline.jpg',
+            'テーマパーク':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/2immPCOZj6tTHMM9zeBg5B/cf09c9c75bc2e70dd38ebf0a12bdb9a2/r6-maps-themepark.jpg',
+            'ヴィラ':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/Io6dxNeHbCbJoF9WLJf9s/ebf89b009affba37df84dcf1934c74e0/r6-maps-villa.jpg'
+        }
+        randommapname, mapurl = random.choice(list(eslmapsdic.items()))
+        embed=discord.Embed(title=randommapname)
+        embed.set_image(url=mapurl)
+        await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -259,10 +252,8 @@ class normal(commands.Cog):
             #print("not this massage")
             return
         elif str(reaction.emoji) == '❌':   
-            #print("Cancel:❌")
             if user.id in self.players:
                 self.players.remove(user.id)
-                #recruitmessage = await reaction.message.channel.fetch_message(self.recruitid)
                 await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を押してください\n現在の参加プレイヤー数:**{len(self.players)}**")
                 try:
                     await user.send('参加を取り消しました')
@@ -281,9 +272,6 @@ class normal(commands.Cog):
             sql = f"SELECT COUNT(1) FROM playerdata WHERE id = {int(userid)}"
             c.execute(sql)
             if c.fetchone()[0]:
-                # if 1 <= self.already[userid] <= self.count:
-                #     await user.send(f"一度参加したため参加できません\nあと**{self.count}マッチ後**に参加できます※参加できるまで配信が続くかはわかりません")#参加した回数1
-                #     return
                 if userid in self.players:
                     print("You already joined")
                     return
@@ -319,7 +307,7 @@ class normal(commands.Cog):
                         return
                     else:
                         sql = 'insert into playerdata values (%s, %s)'
-                        c.execute(sql, (msg.author.id, msg.content))#(msg.author.id, msg.content)
+                        c.execute(sql, (msg.author.id, msg.content))
                         c.close()
                         print(f"Register player Name:{msg.content}")
                         await user.send(f"UplayIDを:**{msg.content}**で登録しました")
