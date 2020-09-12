@@ -11,10 +11,10 @@ import os
 class normal(commands.Cog):
     def __init__(self, bot):
         self.conn = MySQLdb.connect(
-        user='admin',
-        passwd='OZmLQi6yXjvtmLvuKJWB',
-        host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-        db='nakagawa',
+        nakagawadb_user=os.environ['nakagawadb_user'],
+        nakagawadb_passwd=os.environ['nakagawadb_passwd'],
+        nakagawadb_host=os.environ['nakagawadb_host'],
+        nakagawadb_name=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
@@ -33,20 +33,13 @@ class normal(commands.Cog):
     async def connecter(self):
         self.conn.close()
         self.conn = MySQLdb.connect(
-        user='admin',
-        passwd='OZmLQi6yXjvtmLvuKJWB',
-        host='nakagawa.cgfmfgfg5hjd.ap-northeast-1.rds.amazonaws.com',
-        db='nakagawa',
+        nakagawadb_user=os.environ['nakagawadb_user'],
+        nakagawadb_passwd=os.environ['nakagawadb_passwd'],
+        nakagawadb_host=os.environ['nakagawadb_host'],
+        nakagawadb_name=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
-
-    @commands.command()
-    async def test(self, ctx):
-        if ctx.message.mentions[0]:
-            await ctx.send(f"Message{ctx.message.content}")
-            del ctx.message.mentions[0]
-            await ctx.send(f"Message{ctx.message.content}")
 
     @commands.command()
     async def register(self, ctx, newid):
