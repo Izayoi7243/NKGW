@@ -5,16 +5,13 @@ import random
 import MySQLdb
 import os
 
-
-
-
 class normal(commands.Cog):
     def __init__(self, bot):
         self.conn = MySQLdb.connect(
-        nakagawadb_user=os.environ['nakagawadb_user'],
-        nakagawadb_passwd=os.environ['nakagawadb_passwd'],
-        nakagawadb_host=os.environ['nakagawadb_host'],
-        nakagawadb_name=os.environ['nakagawadb_name'],
+        user=os.environ['nakagawadb_user'],
+        passwd=os.environ['nakagawadb_passwd'],
+        host=os.environ['nakagawadb_host'],
+        db=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
@@ -33,10 +30,10 @@ class normal(commands.Cog):
     async def connecter(self):
         self.conn.close()
         self.conn = MySQLdb.connect(
-        nakagawadb_user=os.environ['nakagawadb_user'],
-        nakagawadb_passwd=os.environ['nakagawadb_passwd'],
-        nakagawadb_host=os.environ['nakagawadb_host'],
-        nakagawadb_name=os.environ['nakagawadb_name'],
+        user=os.environ['nakagawadb_user'],
+        passwd=os.environ['nakagawadb_passwd'],
+        host=os.environ['nakagawadb_host'],
+        db=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
@@ -115,14 +112,6 @@ class normal(commands.Cog):
         else:
             ctx.channel.send("このコマンドは管理者のみ使用可能です")
 
-    # @commands.command()
-    # async def resetplay(self, ctx):
-    #     if ctx.author.guild_permissions.administrator:
-    #         self.already.clear()
-    #     else:
-    #         ctx.channel.send("このコマンドは管理者のみ使用可能です")
-
-    
     @commands.command()
     async def start(self, ctx, bluesrice: int, orangesrice: int, count=0):
         if ctx.author.guild_permissions.administrator or ctx.message.guild.get_role(741998241989525575) in ctx.message.author.roles:
@@ -142,10 +131,10 @@ class normal(commands.Cog):
             await recruit.add_reaction("👍")
             await recruit.add_reaction("❌")
             def check(reaction, user):
-                return user.guild_permissions.administrator == True and reaction.message.id == self.recruitid and str(reaction.emoji) == '✅' or user.guild_permissions.administrator == True and reaction.message.id == self.recruitid and str(reaction.emoji) == '🔚' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and reaction.message.id == self.recruitid and str(reaction.emoji) == '✅' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and reaction.message.id == self.recruitid  and str(reaction.emoji) == '🔚'  
+                return user.guild_permissions.administrator == True and reaction.message.id == self.recruitid and str(reaction.emoji) == '✅' or user.guild_permissions.administrator == True and reaction.message.id == self.recruitid and str(reaction.emoji) == '🔚' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and reaction.message.id == self.recruitid and str(reaction.emoji) == '✅' or user.guild.get_role(741998241989525575) in reaction.message.author.guild.roles and reaction.message.id == self.recruitid  and str(reaction.emoji) == '🔚'    
                 #もしつけられたリアクションが✅か🔚だったというcheck関数
             try:
-                reaction, member = await self.bot.wait_for('reaction_add', check=check)
+                reaction, user = await self.bot.wait_for('reaction_add', check=check)
                 #つけられたリアクションが✅か🔚なら
             except asyncio.TimeoutError:
                 #タイムアウトした場合の処理
@@ -153,10 +142,14 @@ class normal(commands.Cog):
             else:
                 #それ以外の場合(つけられたリアクションが✅か🔚の場合)
                 if str(reaction) == '✅':#つけられたリアクションが✅ならチーム分け
+                    log_c = self.bot.get_channel(744180284584493086)
                     c = self.conn.cursor()
                     await ctx.channel.send('募集を締め切り、チーム分けを行います')#チーム分けをするというメッセージ
-                    print(f"抽選プレイヤーID:{self.players}")
+                    print(f"シャッフル前プレイヤーID:{self.players}")
+                    await log_c.send(f"シャッフル前プレイヤーID:{self.players}")
                     random.shuffle(self.players)#参加しているプレイヤーが入っているリストをシャッフル
+                    print(f"シャッフル後プレイヤーID:{self.players}")
+                    await log_c.send(f"シャッフル後プレイヤーID:{self.players}")
                     for i in self.players[:orangesrice + bluesrice]:#チームごとの人数*2
                         sql = f"SELECT ign from playerdata WHERE id='{i}';"#当選したプレイヤーの名前からidを入手
                         c.execute(sql)#sqlを実行
@@ -167,7 +160,9 @@ class normal(commands.Cog):
                     # for playerid in self.players[:bluesrice+orangesrice]:#当選したプレイヤー10人の名前をスライスでfor入
                     #     self.already[playerid] = +1#辞書"already"に当選したプレイヤーのid+プレイ回数+1を追加（何回休み家のシステムのため）
                     print(f"Blue:{blue}")#ブルーチーム
+                    await log_c.send(f"Blue:{blue}")
                     print(f"Orange:{orange}")#オレンジチーム
+                    await log_c.send(f"Orange:{orange}")
                     bjoin = '\n'.join(blue)
                     ojoin = '\n'.join(orange)
                     embed=discord.Embed(title="Team", color=0xffffff)
@@ -211,6 +206,21 @@ class normal(commands.Cog):
         if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
             await ctx.send("該当するメンバーがいません")
 
+    @commands.command()
+    async def playerlist(self, ctx, guildid = 722059814154534932):
+        playerlist = []
+        embed=discord.Embed(title="Players", color=0xffffff)
+        for player in  self.players:
+            c = self.conn.cursor()
+            sql = f'select ign from playerdata where id = "{player}"'
+            c.execute(sql)
+            ign = c.fetchone()
+            joinuser = self.bot.get_user(player)
+            res = f"```{joinuser.name}:{ign[0]}```"
+            playerlist.append(res)
+        a = '\n'.join(playerlist)
+        embed.add_field(name="All", value=f"```{a}```", inline=False)
+        await ctx.channel.send(embed=embed)
 
     @commands.command()
     async def kusozatumap(self, ctx):
@@ -228,29 +238,6 @@ class normal(commands.Cog):
         embed.set_image(url=mapurl)
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def playerlist(self, ctx, guildid = 722059814154534932):
-        playerlist = []
-        embed=discord.Embed(title="Players", color=0xffffff)
-        for player in  self.players:
-            c = self.conn.cursor()
-            sql = f'select ign from playerdata where id = "{player}"'
-            c.execute(sql)
-            ign = c.fetchone()
-            joinuser = self.bot.get_user(player)
-            res = f"```{joinuser.name}:{ign[0]}```"
-            playerlist.append(res)
-        a = '\n'.join(playerlist)
-        embed.add_field(name="All", value=f"```{a}```", inline=False)
-        await ctx.channel.send(embed=embed)
-
-    # @start.error#スタートコマンドのエラーハンドリング
-    # async def start_error(self, ctx, error):
-    #     if isinstance(error, commands.MissingRequiredArgument):#引数が足りないエラー
-    #         await ctx.send("チームごとの人数を指定してください\n**例**\n```n!start 5```")
-    #     if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
-    #         await ctx.send("参加プレイヤーが足りません")
-
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         guild = reaction.message.guild
@@ -265,10 +252,8 @@ class normal(commands.Cog):
             #print("not this massage")
             return
         elif str(reaction.emoji) == '❌':   
-            #print("Cancel:❌")
             if user.id in self.players:
                 self.players.remove(user.id)
-                #recruitmessage = await reaction.message.channel.fetch_message(self.recruitid)
                 await self.recruitm.edit(content=f"カスタムマッチの募集を始めます\n参加したい人は👍を押してください\n参加をキャンセルする場合は❌を押してください\n現在の参加プレイヤー数:**{len(self.players)}**")
                 try:
                     await user.send('参加を取り消しました')
@@ -287,9 +272,6 @@ class normal(commands.Cog):
             sql = f"SELECT COUNT(1) FROM playerdata WHERE id = {int(userid)}"
             c.execute(sql)
             if c.fetchone()[0]:
-                # if 1 <= self.already[userid] <= self.count:
-                #     await user.send(f"一度参加したため参加できません\nあと**{self.count}マッチ後**に参加できます※参加できるまで配信が続くかはわかりません")#参加した回数1
-                #     return
                 if userid in self.players:
                     print("You already joined")
                     return
@@ -325,7 +307,7 @@ class normal(commands.Cog):
                         return
                     else:
                         sql = 'insert into playerdata values (%s, %s)'
-                        c.execute(sql, (msg.author.id, msg.content))#(msg.author.id, msg.content)
+                        c.execute(sql, (msg.author.id, msg.content))
                         c.close()
                         print(f"Register player Name:{msg.content}")
                         await user.send(f"UplayIDを:**{msg.content}**で登録しました")
