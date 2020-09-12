@@ -1,6 +1,7 @@
 from discord.ext import commands
 import os
 import traceback
+import os
 
 INITIAL_EXTENSIONS = [
     'cogs.normal',
@@ -24,4 +25,4 @@ class MyBot(commands.Bot):
 if __name__ == '__main__':
     bot = MyBot(command_prefix='n!')
     bot.load_extension('dispander')
-    bot.run(os.environ['TOKEN']) # Botのトークン
+    bot.run(os.environ['nakagawabot_token']) # Botのトークン
