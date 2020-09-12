@@ -218,6 +218,23 @@ class normal(commands.Cog):
         if isinstance(error, commands.errors.CommandInvokeError):#埋め込みに入れる要素がないときのエラー
             await ctx.send("該当するメンバーがいません")
 
+
+    @commands.command()
+    async def kusozatumap(self, ctx):
+        eslmapsdic = {
+            'クラブハウス':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/1vCw5eD2XzxZlv6Au1gtui/a173a37999379b65dad7b37a77c24498/r6-maps-clubhouse.jpg',
+            'カフェ':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/2nIuPSHvbM57TK90VSwBEm/70144ada56cf1ba72103aeb4ece9ed1a/r6-maps-kafe.jpg',
+            '領事館':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/6PR2sBla9E6TNurVUfJ0mc/860cab16eb1d4cd27ea356a1c3fe9591/r6-maps-consulate.jpg',
+            '国境':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/4hqsrL3cokFqedkfjiEaGf/b91bc482243b56531f999912de6d0bcb/r6-maps-border.jpg',
+            '海岸線':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/5GfAQ3pXCJnDqiqaDH3Zic/2a491e0c4c184c28a88792d85279e551/r6-maps-coastline.jpg',
+            'テーマパーク':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/2immPCOZj6tTHMM9zeBg5B/cf09c9c75bc2e70dd38ebf0a12bdb9a2/r6-maps-themepark.jpg',
+            'ヴィラ':'https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/Io6dxNeHbCbJoF9WLJf9s/ebf89b009affba37df84dcf1934c74e0/r6-maps-villa.jpg'
+        }
+        randommapname, mapurl = random.choice(list(eslmapsdic.items()))
+        embed=discord.Embed(title=randommapname)
+        embed.set_image(url=mapurl)
+        await ctx.send(embed=embed)
+
     @commands.command()
     async def playerlist(self, ctx, guildid = 722059814154534932):
         playerlist = []
