@@ -1,5 +1,4 @@
 from discord.ext import commands
-import traceback
 import os
 
 INITIAL_EXTENSIONS = [
@@ -11,12 +10,8 @@ class MyBot(commands.Bot):
     def __init__(self, command_prefix):
         # スーパークラスのコンストラクタに値を渡して実行。
         super().__init__(command_prefix)
-
         for cog in INITIAL_EXTENSIONS:
-            try:
-                self.load_extension(cog)
-            except Exception:
-                traceback.print_exc()
+            self.load_extension(cog)
 
     async def on_ready(self):
         print(f"{self.user.name} is Ready.")
