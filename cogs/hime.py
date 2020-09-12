@@ -11,10 +11,10 @@ import os
 class hime(commands.Cog):
     def __init__(self, bot):
         self.conn = MySQLdb.connect(
-        user=os.environ['user'],
-        passwd=os.environ['password'],
-        host=os.environ['host'],
-        db=os.environ['db'],
+        user=os.environ['nakagawadb_user'],
+        passwd=os.environ['nakagawadb_passwd'],
+        host=os.environ['nakagawadb_host'],
+        db=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
@@ -39,10 +39,10 @@ class hime(commands.Cog):
     async def connecter(self):
         self.conn.close()
         self.conn = MySQLdb.connect(
-        user=os.environ['user'],
-        passwd=os.environ['password'],
-        host=os.environ['host'],
-        db=os.environ['db'],
+        user=os.environ['nakagawadb_user'],
+        passwd=os.environ['nakagawadb_passwd'],
+        host=os.environ['nakagawadb_host'],
+        db=os.environ['nakagawadb_name'],
         charset="utf8",
         autocommit=True
         )
