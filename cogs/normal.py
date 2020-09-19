@@ -222,6 +222,19 @@ class normal(commands.Cog):
         embed.add_field(name="All", value=f"```{a}```", inline=False)
         await ctx.channel.send(embed=embed)
 
+    @commands.command()
+    async def shuffle(self, ctx):
+        random.shuffle(self.lucky)
+        blue = self.lucky[:self.bluesrice]
+        orange = self.lucky[self.bluesrice:]
+        bjoin = '\n'.join(blue)
+        ojoin = '\n'.join(orange)
+        embed=discord.Embed(title="Team", color=0xffffff)
+        embed.add_field(name="Blue", value=f"```\n{bjoin}```", inline=False)#Blueチームにjoinで改行しながらリストblueを入れる
+        embed.add_field(name="Orange", value=f"```\n{ojoin}```", inline=False)#orangeチームにjoinで改行しながらリストorangeを入れる
+        await ctx.channel.send(embed=embed)#チーム分けを送信
+
+
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         guild = reaction.message.guild
