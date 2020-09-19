@@ -3,7 +3,8 @@ import os
 
 INITIAL_EXTENSIONS = [
     'cogs.normal',
-    'cogs.hime'
+    'cogs.hime',
+    'cogs.map'
 ]
 
 class MyBot(commands.Bot):
